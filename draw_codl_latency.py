@@ -10,11 +10,13 @@ def read_number(s):
     else:
         return s
 
-matplotlib.rcParams.update({'font.size': 18})
+matplotlib.rcParams.update({'font.size': 20})
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
 
 plt.style.use("tableau-colorblind10")
 
-width = 18
+width = 10
 plt.figure(figsize=(width, 5))
 ylim = 50
 plt.ylim(0, ylim)
@@ -29,16 +31,7 @@ start = 0
 all_xticks = []
 all_xlabels = []
 
-device_index = {"cpu": 0, "gpu": 1, "dsp": 2, "cpu+gpu": 3, "cpu+dsp": 4, "gpu+dsp": 5, "cpu+gpu+dsp": 6}
-
-model_name_dict = {
-    "ResNet34": "R-34",
-    "ResNet50": "R-50",
-    "RegNetX-1.6GF": "RX-1.6",
-    "RegNetX-4GF": "RX-4",
-    "EfficientNet-L4": "EN-L4",
-    "EfficientNet-B5": "EN-B5",
-}
+device_index = {"CPU": 0, "GPU": 1, "CoDL": 2, "Stretch": 3}
 
 platform_dict = {
     "mi9": "Xiaomi 9",
@@ -46,14 +39,13 @@ platform_dict = {
     "mi11": "Xiaomi 11 Pro",
 }
 
-for platform in ["mi9", "pixel6", "mi11"]:
+for platform in ["mi9", "mi11"]:
     if platform != "mi9":
         plt.axvline(start - 2 * bar_width, color="gray", linestyle="--")
 
-    df = pd.read_csv("stretch_{}.csv".format(platform))
-    xlabels = [model_name_dict[label] for label in df.iloc[:, 0].to_numpy()]
+    df = pd.read_csv("codl_{}.csv".format(platform))
+    xlabels = [label for label in df.iloc[:, 0].to_numpy()]
     devices = df.keys().to_list()[1:]
-    devices = [d.upper() for d in devices]
 
     n_models = df.shape[0]
     total_width = (len(devices) + bar_spacing) * bar_width
@@ -66,7 +58,7 @@ for platform in ["mi9", "pixel6", "mi11"]:
             if lat > ylim:
                 plt.text(x, ylim + 1, "{:.3f}".format(lat), horizontalalignment="center")
         index = device_index[device]
-        plt.bar(xbr, lats, color=colors[index], hatch=hatches[index], width=bar_width, label=device.upper(), edgecolor="grey")
+        plt.bar(xbr, lats, color=colors[index], hatch=hatches[index], width=bar_width, label=device, edgecolor="grey")
         xbr = xbr + bar_width
     
     plt.text(start + total_width * n_models / 2, -15, platform_dict[platform], horizontalalignment="center", fontsize="20")    
@@ -81,10 +73,11 @@ for platform in ["mi9", "pixel6", "mi11"]:
 plt.xticks(all_xticks, all_xlabels)
 
 handles, labels = plt.gca().get_legend_handles_labels()
-handles, labels = handles[:7], labels[:7]
+handles, labels = handles[:4], labels[:4]
 plt.legend(handles, labels, bbox_to_anchor=(0, 1.05, 1, 0.105), ncol=7, fancybox=True, mode="expand")
 
 plt.tight_layout()
 
-plt.savefig('all_latency.png')
+plt.savefig('codl_latency.png')
+plt.savefig('codl_latency.pdf')
 
